@@ -12,3 +12,4 @@ C:\Code\ASP.NET\TrainDataManagement\Telemetry.Simulator\obj\Debug\net9.0\refint\
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Simulator\obj\Debug\net9.0\Telemetry.Simulator.pdb
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Simulator\obj\Debug\net9.0\Telemetry.Simulator.genruntimeconfig.cache
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Simulator\obj\Debug\net9.0\ref\Telemetry.Simulator.dll
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.Simulator\obj\Debug\net9.0\Telemetry.Simulator.sourcelink.json
