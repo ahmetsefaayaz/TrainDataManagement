@@ -128,3 +128,4 @@ C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\bin\Debug\net9.0\ru\Microso
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\bin\Debug\net9.0\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\bin\Debug\net9.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\bin\Debug\net9.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net9.0\Telemetry.Server.sourcelink.json
