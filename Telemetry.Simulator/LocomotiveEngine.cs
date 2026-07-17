@@ -8,6 +8,8 @@ public class LocomotiveEngine
     public double CurrentLon { get; private set; }
     public float CurrentSpeed { get; private set; }
     
+    public bool IsFinished { get; private set; } = false;
+    
     private readonly RailwayRoute _route;
     private int _currentWaypointIndex;
     private readonly Random _rnd;
@@ -25,6 +27,8 @@ public class LocomotiveEngine
 
     public void Move(double stepSize)
     {
+        if(IsFinished) return;
+        
         var target = _route.Waypoints[_currentWaypointIndex];
         double latDiff = target.Lat - CurrentLat;
         double lonDiff = target.Lon - CurrentLon;
@@ -35,9 +39,8 @@ public class LocomotiveEngine
             _currentWaypointIndex++;
             if (_currentWaypointIndex >= _route.Waypoints.Count)
             {
-                _currentWaypointIndex = 0;
-                CurrentLat = _route.Waypoints[0].Lat + (_rnd.NextDouble() - 0.5) * 0.005;
-                CurrentLon = _route.Waypoints[0].Lon + (_rnd.NextDouble() - 0.5) * 0.005;
+                IsFinished = true;
+                CurrentSpeed = 0;
                 return;
             }
             target = _route.Waypoints[_currentWaypointIndex];

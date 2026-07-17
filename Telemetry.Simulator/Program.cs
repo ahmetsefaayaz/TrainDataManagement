@@ -82,15 +82,14 @@ class Program
                     (38.4747, 27.1591),
                     (38.4689, 27.1279),
                     (38.4590, 27.1170), 
-                    (38.4883, 27.0581), 
+                    (38.4921, 27.0627), 
                     (38.5276, 27.0325),
-                    (38.6288, 27.1691),
+                    (38.6029, 27.0766),
+                    (38.6245, 27.1477),
                     (38.6175, 27.1836),
                     (38.6469, 27.2484),
-                    (38.6019, 27.0725), 
-                    (38.6367, 27.1583),
-                    (38.6256, 27.3486),
-                    (38.6140, 27.4296) 
+                    (38.6511, 27.3285),
+                    (38.6213, 27.4344) 
                 }
             }
         };
@@ -129,7 +128,7 @@ class Program
 
                 while (client.Connected)
                 {
-                    if(route.RouteName.Contains("YHT"))
+                    if(route.RouteName.ToUpper().Contains("YHT"))
                         engine.Move(0.0006); //Yaklaşık 240 km/s
                     else
                         engine.Move(0.0002); //yaklaşık 80km/s
@@ -138,9 +137,13 @@ class Program
                     await stream.WriteAsync(payload, 0, payload.Length);
                     
                     Console.WriteLine(engine.GetStatusLog());
+                    if (engine.IsFinished)
+                        break;
 
                     await Task.Delay(100);
                 }
+                if(engine.IsFinished)
+                    break;
             }
             catch (Exception)
             {
