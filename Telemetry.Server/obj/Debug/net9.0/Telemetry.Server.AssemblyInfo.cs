@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Telemetry.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c88134013d474d9ee9229d654134cc79a0d5373f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2e97e578f1512cb2754d7321ae92c36ce0d8d5f8")]
 [assembly: System.Reflection.AssemblyProductAttribute("Telemetry.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Telemetry.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
