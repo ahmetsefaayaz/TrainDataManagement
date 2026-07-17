@@ -1,4 +1,5 @@
-﻿
+﻿using Telemetry.Simulator.Models;
+
 namespace Telemetry.Simulator;
 
 public class LocomotiveEngine
@@ -12,12 +13,16 @@ public class LocomotiveEngine
     
     private readonly RailwayRoute _route;
     private int _currentWaypointIndex;
+    private readonly List<TrainStop> _stops;
     private readonly Random _rnd;
+    
+    private int _counter = 0; 
 
-    public LocomotiveEngine(short id, RailwayRoute route)
+    public LocomotiveEngine(short id, RailwayRoute route, List<TrainStop> stops)
     {
         Id = id;
         _route = route;
+        _stops = stops ?? new List<TrainStop>();
         _rnd = new Random(id);
         _currentWaypointIndex = 0;
         
@@ -25,7 +30,7 @@ public class LocomotiveEngine
         CurrentLon = _route.Waypoints[0].Lon + (_rnd.NextDouble() - 0.5) * 0.005;
     }
 
-    public void Move(double stepSize)
+    public void Move(double maxStepSize)
     {
         if(IsFinished) return;
         
@@ -33,30 +38,58 @@ public class LocomotiveEngine
         double latDiff = target.Lat - CurrentLat;
         double lonDiff = target.Lon - CurrentLon;
         double distance = Math.Sqrt(latDiff * latDiff + lonDiff * lonDiff);
+        
+        bool isLastWaypoint = _currentWaypointIndex == _route.Waypoints.Count - 1;
+        bool isIntermediateStation = _stops.Any(s => 
+            Math.Abs(s.Latitude - target.Lat) < 0.0001 && 
+            Math.Abs(s.Longitude - target.Lon) < 0.0001);
+        bool isStation = isLastWaypoint || isIntermediateStation;
+        
+        
+        double brakingDistance = maxStepSize * ((_counter * (_counter + 1)) / 2.0) / 60.0;
 
-        if (distance < 0.001)
+        if (isStation && distance <= brakingDistance)
+        {
+            if (_counter > 1) _counter--; 
+        }
+        else if (_counter < 60 && !isLastWaypoint)
+        {
+            _counter++;
+        }
+
+        float speedRatio = _counter / 60f; 
+        
+        float maxSpeed = (float)(maxStepSize * 111 * 3600);
+        
+        CurrentSpeed = maxSpeed * speedRatio;
+
+        
+        double actualStepSize = maxStepSize * speedRatio;
+
+        
+        if (distance <= actualStepSize || distance < 0.000001)
         {
             _currentWaypointIndex++;
             if (_currentWaypointIndex >= _route.Waypoints.Count)
             {
                 IsFinished = true;
-                CurrentSpeed = 0;
+                CurrentSpeed = 0; 
+                CurrentLat = target.Lat;
+                CurrentLon = target.Lon;
                 return;
             }
+            
             target = _route.Waypoints[_currentWaypointIndex];
             latDiff = target.Lat - CurrentLat;
             lonDiff = target.Lon - CurrentLon;
             distance = Math.Sqrt(latDiff * latDiff + lonDiff * lonDiff);
         }
-        
-        if (_route.RouteName.Contains("YHT"))
-            CurrentSpeed = _rnd.Next(200, 250);
-        else
-            CurrentSpeed = _rnd.Next(60, 110);
-        
-        
-        CurrentLat += (latDiff / distance) * stepSize;
-        CurrentLon += (lonDiff / distance) * stepSize;
+
+        if (actualStepSize > 0 && !IsFinished)
+        {
+            CurrentLat += (latDiff / distance) * actualStepSize; 
+            CurrentLon += (lonDiff / distance) * actualStepSize;
+        }
     }
 
     public byte[] GetPayload()
@@ -77,6 +110,7 @@ public class LocomotiveEngine
 
     public string GetStatusLog()
     {
-        return $"[TX] [{_route.RouteName}] Loko: {Id:D2} | Lat: {CurrentLat:F4} | Lon: {CurrentLon:F4} | Hız: {CurrentSpeed} km/h";
+        string status = _counter < 60 && !IsFinished ? "[HIZLANIYOR]" : (IsFinished ? "[GARDA DURDU]" : (_counter < 60 ? "[FREN YAPIYOR]" : "[SEYİR HIZINDA]"));
+        return $"[TX] [{_route.RouteName}] Loko: {Id:D2} | Lat: {CurrentLat:F4} | Lon: {CurrentLon:F4} | Hız: {CurrentSpeed:F1} km/h {status}";
     }
 }

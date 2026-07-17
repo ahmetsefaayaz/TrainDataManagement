@@ -1,9 +1,11 @@
 ﻿using System.Net.Sockets;
+using Telemetry.Simulator.Models;
 
 namespace Telemetry.Simulator;
 
 class Program
 {
+    private static List<TrainStop> _trainStopList = new ();
     static async Task Main(string[] args)
     {
         var routes = new List<RailwayRoute>
@@ -93,7 +95,16 @@ class Program
                 }
             }
         };
-
+        
+        //TODO: Bunlari Veritabanina Kaydet, static liste olarak tutma
+        var eskisehir = new TrainStop { Latitude = 39.7793, Longitude = 30.5034 };
+        var manisa = new TrainStop { Latitude = 38.6213, Longitude = 27.4344 };
+        var karabuk = new TrainStop { Latitude = 41.1952, Longitude = 32.6110 };
+        var testAraDurak = new TrainStop { Latitude = 39.6832, Longitude = 32.2338 };
+        _trainStopList.Add(eskisehir);
+        _trainStopList.Add(manisa);
+        _trainStopList.Add(karabuk);
+        _trainStopList.Add(testAraDurak);
         int locomotiveCount = 10;
         Task[] tasks = new Task[locomotiveCount];
 
@@ -113,8 +124,8 @@ class Program
     {
         string serverIp = "127.0.0.1";
         int port = 5000;
-        
-        var engine = new LocomotiveEngine(locomotiveId, route);
+
+        var engine = new LocomotiveEngine(locomotiveId, route, _trainStopList);
         
         while (true)
         {
@@ -125,7 +136,6 @@ class Program
                 using NetworkStream stream = client.GetStream();
                 
                 Console.WriteLine($"[BİLGİ] Lokomotif {locomotiveId} ({route.RouteName}) merkeze bağlandı.");
-
                 while (client.Connected)
                 {
                     if(route.RouteName.ToUpper().Contains("YHT"))
@@ -139,15 +149,15 @@ class Program
                     Console.WriteLine(engine.GetStatusLog());
                     if (engine.IsFinished)
                         break;
-
                     await Task.Delay(10);
                 }
                 if(engine.IsFinished)
                     break;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Console.WriteLine($"[UYARI] Lokomotif {locomotiveId} bağlantısı koptu. Yeniden deneniyor...");
+                Console.WriteLine(ex.Message);
                 await Task.Delay(3000);
             }
         }
