@@ -1,5 +1,4 @@
-﻿// Haritayı başlat (Ankara merkezli)
-const map = L.map('map').setView([39.9207, 32.8541], 6);
+﻿const map = L.map('map').setView([39.9351, 32.8435], 6);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -14,7 +13,6 @@ async function fetchRoute() {
     const endDate = document.getElementById('endDate').value;
     const btn = document.getElementById('drawBtn');
 
-    // ID Kontrolü (Artık zorunlu)
     if (!locoId) {
         alert("Lütfen geçerli bir Lokomotif ID girin! (Örn: 1)");
         return;
@@ -25,7 +23,6 @@ async function fetchRoute() {
         return;
     }
 
-    // Portun 5215 olduğuna dikkat et
     const url = `http://localhost:5215/api/telemetry?startDate=${startDate}&endDate=${endDate}&locomotiveId=${locoId}`;
 
     try {
@@ -45,18 +42,15 @@ async function fetchRoute() {
             return;
         }
 
-        // Sadece belirtilen ID'ye ait olan koordinatları dizi haline getir
         const latLngs = data.map(point => [point.latitude, point.longitude]);
 
-        // Eski çizgi varsa temizle
+        
         if (currentPolyline) {
             map.removeLayer(currentPolyline);
         }
 
-        // Yeni rotayı mavi, kalın bir çizgi olarak haritaya bas
         currentPolyline = L.polyline(latLngs, { color: 'blue', weight: 4 }).addTo(map);
 
-        // Harita kamerasını çizilen yola otomatik odakla
         map.fitBounds(currentPolyline.getBounds());
 
         console.log(`Başarılı! Lokomotif ${locoId} için rota çizildi.`);
@@ -70,7 +64,6 @@ async function fetchRoute() {
     }
 }
 
-// Sayfa açıldığında tarihleri otomatik doldur
 document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
