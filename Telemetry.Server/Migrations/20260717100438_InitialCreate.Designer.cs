@@ -12,7 +12,7 @@ using Telemetry.Server.Data;
 namespace Telemetry.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260714133042_InitialCreate")]
+    [Migration("20260717100438_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
