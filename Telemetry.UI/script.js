@@ -6,6 +6,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let currentPolyline = null;
+let currentMarkers = [];
 
 async function fetchRoute() {
     const locoId = document.getElementById('locoId').value;
@@ -44,15 +45,42 @@ async function fetchRoute() {
 
         const latLngs = data.map(point => [point.latitude, point.longitude]);
 
-        
         if (currentPolyline) {
             map.removeLayer(currentPolyline);
         }
+        currentMarkers.forEach(marker => map.removeLayer(marker));
+        currentMarkers = []; 
 
         currentPolyline = L.polyline(latLngs, { color: 'blue', weight: 4 }).addTo(map);
 
-        map.fitBounds(currentPolyline.getBounds());
+        const knownStops = [];
 
+        data.forEach(point => {
+            if (point.speed === 0 || point.Speed === 0) {
+
+                const alreadyAdded = knownStops.some(
+                    stop => Math.abs(stop.lat - point.latitude) < 0.0001 && Math.abs(stop.lon - point.longitude) < 0.0001
+                );
+
+                if (!alreadyAdded) {
+                    knownStops.push({ lat: point.latitude, lon: point.longitude });
+
+                    const marker = L.circleMarker([point.latitude, point.longitude], {
+                        color: 'darkred',
+                        fillColor: 'red',
+                        fillOpacity: 1,
+                        radius: 6
+                    }).addTo(map);
+
+                    const timeString = new Date(point.recordedAt || point.RecordedAt).toLocaleTimeString('tr-TR');
+                    marker.bindPopup(`<b>İstasyon / Bekleme Noktası</b><br>Varış: ${timeString}`);
+
+                    currentMarkers.push(marker);
+                }
+            }
+        });
+
+        map.fitBounds(currentPolyline.getBounds());
         console.log(`Başarılı! Lokomotif ${locoId} için rota çizildi.`);
 
     } catch (error) {
@@ -67,8 +95,6 @@ async function fetchRoute() {
 document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
-
-    // ISO formatına çevir (YYYY-MM-DDThh:mm)
     document.getElementById('startDate').value = oneHourAgo.toISOString().slice(0, 16);
     document.getElementById('endDate').value = now.toISOString().slice(0, 16);
 });

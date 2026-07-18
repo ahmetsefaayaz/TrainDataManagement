@@ -17,12 +17,13 @@ public class LocomotiveEngine
     private readonly Random _rnd;
     
     private int _counter = 0; 
+    private int _idleCounter = 0;
 
     public LocomotiveEngine(short id, RailwayRoute route, List<TrainStop> stops)
     {
         Id = id;
         _route = route;
-        _stops = stops ?? new List<TrainStop>();
+        _stops = stops;
         _rnd = new Random(id);
         _currentWaypointIndex = 0;
         
@@ -33,6 +34,14 @@ public class LocomotiveEngine
     public void Move(double maxStepSize)
     {
         if(IsFinished) return;
+
+        if (_idleCounter > 0)
+        {
+            _idleCounter--;
+            CurrentSpeed = 0;
+            return;
+        }
+        
         
         var target = _route.Waypoints[_currentWaypointIndex];
         double latDiff = target.Lat - CurrentLat;
@@ -52,7 +61,7 @@ public class LocomotiveEngine
         {
             if (_counter > 1) _counter--; 
         }
-        else if (_counter < 60 && !isLastWaypoint)
+        else if (_counter < 60 && !isStation) //??? => isLastWayPoint => isStation
         {
             _counter++;
         }
@@ -69,13 +78,22 @@ public class LocomotiveEngine
         
         if (distance <= actualStepSize || distance < 0.000001)
         {
+            CurrentLat = target.Lat;
+            CurrentLon = target.Lon;
+            
             _currentWaypointIndex++;
             if (_currentWaypointIndex >= _route.Waypoints.Count)
             {
                 IsFinished = true;
-                CurrentSpeed = 0; 
-                CurrentLat = target.Lat;
-                CurrentLon = target.Lon;
+                CurrentSpeed = 0;
+                return;
+            }
+
+            if (isIntermediateStation)
+            {
+                _counter = 0;
+                _idleCounter = 200; //200 saniye durakta bekle
+                CurrentSpeed = 0;
                 return;
             }
             
@@ -107,7 +125,7 @@ public class LocomotiveEngine
 
         return payload;
     }
-
+    
     public string GetStatusLog()
     {
         string status = _counter < 60 && !IsFinished ? "[HIZLANIYOR]" : (IsFinished ? "[GARDA DURDU]" : (_counter < 60 ? "[FREN YAPIYOR]" : "[SEYİR HIZINDA]"));
