@@ -141,11 +141,14 @@ class Program
                         engine.Move(0.0006); //Yaklaşık 240 km/s
                     else
                         engine.Move(0.0002); //yaklaşık 80km/s
-                    byte[] payload = engine.GetPayload();
+                    bool inBlindZone = IsInBlindZone(engine.CurrentLat, engine.CurrentLon);
+                    if (!inBlindZone)
+                    {
+                        byte[] payload = engine.GetPayload();
+                        await stream.WriteAsync(payload, 0, payload.Length);
+                        Console.WriteLine(engine.GetStatusLog());
+                    }
 
-                    await stream.WriteAsync(payload, 0, payload.Length);
-                    
-                    Console.WriteLine(engine.GetStatusLog());
                     if (engine.IsFinished)
                         break;
                     await Task.Delay(10);
@@ -160,5 +163,21 @@ class Program
                 await Task.Delay(3000);
             }
         }
+    }
+
+    public static bool IsInBlindZone(double currentLat, double currentLon)
+    {
+        double minLat = 39.5439; 
+        double maxLat = 39.6912;
+        double minLon = 31.8739;
+        double maxLon = 32.1070; 
+
+        if (currentLat >= minLat && currentLat <= maxLat && 
+            currentLon >= minLon && currentLon <= maxLon)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

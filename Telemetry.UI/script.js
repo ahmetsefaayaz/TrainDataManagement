@@ -49,9 +49,34 @@ async function fetchRoute() {
             map.removeLayer(currentPolyline);
         }
         currentMarkers.forEach(marker => map.removeLayer(marker));
-        currentMarkers = []; 
+        currentMarkers = [];
+        
+        const segments = [];
+        let currentSegment = [];
 
-        currentPolyline = L.polyline(latLngs, { color: 'blue', weight: 4 }).addTo(map);
+        for (let i = 0; i < data.length; i++) {
+            const point = data[i];
+            const currentPointTime = new Date(point.recordedAt || point.RecordedAt).getTime();
+
+            if (i > 0) {
+                const prevPoint = data[i - 1];
+                const prevPointTime = new Date(prevPoint.recordedAt || prevPoint.RecordedAt).getTime();
+
+                const timeDiff = currentPointTime - prevPointTime;
+
+                if (timeDiff > 50) {
+                    segments.push(currentSegment);
+                    currentSegment = [];
+                }
+            }
+
+            currentSegment.push([point.latitude, point.longitude]);
+
+            if (i === data.length - 1) {
+                segments.push(currentSegment);
+            }
+        }
+        currentPolyline = L.polyline(segments, { color: 'blue', weight: 4 }).addTo(map);
 
         const knownStops = [];
 
