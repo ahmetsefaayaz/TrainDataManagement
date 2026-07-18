@@ -28,7 +28,8 @@ public class TelemetryService: ITelemetryService
                 RecordedAt = t.RecordedAt,
                 LocomotiveId = t.LocomotiveId,
                 Longitude =  t.Longitude,
-                Latitude = t.Latitude
+                Latitude = t.Latitude,
+                Speed = t.Speed
             })
             .ToListAsync();
             

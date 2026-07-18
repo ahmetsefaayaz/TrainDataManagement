@@ -96,11 +96,10 @@ class Program
             }
         };
         
-        //TODO: Bunlari Veritabanina Kaydet, static liste olarak tutma
         var eskisehir = new TrainStop { Latitude = 39.7793, Longitude = 30.5034 };
         var manisa = new TrainStop { Latitude = 38.6213, Longitude = 27.4344 };
         var karabuk = new TrainStop { Latitude = 41.1952, Longitude = 32.6110 };
-        var testAraDurak = new TrainStop { Latitude = 39.6832, Longitude = 32.2338 };
+        var testAraDurak = new TrainStop { Latitude = 39.5857, Longitude = 32.1417 };
         _trainStopList.Add(eskisehir);
         _trainStopList.Add(manisa);
         _trainStopList.Add(karabuk);
