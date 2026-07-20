@@ -53,6 +53,10 @@ public class FixDataService: IFixDataService
 
     public async Task<List<Waypoint>> FixWaypoints(List<Waypoint> waypoints)
     {
+        if (waypoints == null || waypoints.Count < 2)
+        {
+            return new List<Waypoint>();
+        }
         var prevWaypoint = waypoints[0];
         var currentWaypoint = waypoints[1];
         
