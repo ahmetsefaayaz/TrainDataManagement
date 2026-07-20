@@ -52,7 +52,11 @@ async function fetchRoute() {
         currentMarkers = [];
         
         const segments = [];
+        const patchedSegments = [];
         let currentSegment = [];
+        
+        //Şimdilik manuel olarak 1 yazdık
+        const currentRouteId = 1;
 
         for (let i = 0; i < data.length; i++) {
             const point = data[i];
@@ -64,9 +68,26 @@ async function fetchRoute() {
 
                 const timeDiff = currentPointTime - prevPointTime;
 
-                if (timeDiff > 2000) {
+                if (timeDiff > 200) {
                     segments.push(currentSegment);
                     currentSegment = [];
+
+                    try {
+                        const fixUrl = `http://localhost:5215/api/fixdata/fix?startLat=${prevPoint.latitude}&startLon=${prevPoint.longitude}&endLat=${point.latitude}&endLon=${point.longitude}&routeId=${currentRouteId}`;
+                        
+                        const fixResponse = await fetch(fixUrl);
+
+                        if(fixResponse.ok) {
+                            const missingWaypoints = await fixResponse.json();
+                            const patchedCoords = missingWaypoints.map(w => [w.latitude, w.longitude]);
+                            if(patchedCoords.length > 0) {
+                                patchedSegments.push(patchedCoords);
+                            }
+                        }
+                    } catch(err) {
+                        console.error("Yama verisi çekilemedi: ", err);
+                    }
+                    
                 }
             }
 
@@ -76,10 +97,23 @@ async function fetchRoute() {
                 segments.push(currentSegment);
             }
         }
-        currentPolyline = L.polyline(segments, { color: 'blue', weight: 4 }).addTo(map);
+        const validSegments = segments.filter(seg => seg.length > 1);
+        
+        if (validSegments.length > 0) {
+            currentPolyline = L.polyline(validSegments, { color: 'blue', weight: 4 }).addTo(map);
+            map.fitBounds(currentPolyline.getBounds());
+        }
 
+        if (patchedSegments.length > 0) {
+            L.polyline(patchedSegments, {
+                color: 'gray',
+                weight: 4,
+                dashArray: '10, 10'
+            }).addTo(map);
+        }
+        
+        //Hız 0 olduysa kırmızı nokta oluştur.
         const knownStops = [];
-
         data.forEach(point => {
             if (point.speed === 0 || point.Speed === 0) {
 
