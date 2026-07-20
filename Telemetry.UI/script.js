@@ -64,7 +64,7 @@ async function fetchRoute() {
 
                 const timeDiff = currentPointTime - prevPointTime;
 
-                if (timeDiff > 50) {
+                if (timeDiff > 2000) {
                     segments.push(currentSegment);
                     currentSegment = [];
                 }

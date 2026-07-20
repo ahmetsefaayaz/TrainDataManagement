@@ -1,4 +1,4 @@
-﻿using Telemetry.Simulator.Models;
+﻿using Telemetry.Simulator.Dtos;
 
 namespace Telemetry.Simulator;
 
@@ -11,15 +11,15 @@ public class LocomotiveEngine
     
     public bool IsFinished { get; private set; } = false;
     
-    private readonly RailwayRoute _route;
+    private readonly RouteDto _route;
     private int _currentWaypointIndex;
-    private readonly List<TrainStop> _stops;
+    private readonly List<TrainStopDto> _stops;
     private readonly Random _rnd;
     
     private int _counter = 0; 
     private int _idleCounter = 0;
 
-    public LocomotiveEngine(short id, RailwayRoute route, List<TrainStop> stops)
+    public LocomotiveEngine(short id, RouteDto route, List<TrainStopDto> stops)
     {
         Id = id;
         _route = route;
@@ -27,8 +27,8 @@ public class LocomotiveEngine
         _rnd = new Random(id);
         _currentWaypointIndex = 0;
         
-        CurrentLat = _route.Waypoints[0].Lat + (_rnd.NextDouble() - 0.5) * 0.005;
-        CurrentLon = _route.Waypoints[0].Lon + (_rnd.NextDouble() - 0.5) * 0.005;
+        CurrentLat = _route.Waypoints[0].Latitude + (_rnd.NextDouble() - 0.5) * 0.005;
+        CurrentLon = _route.Waypoints[0].Longitude + (_rnd.NextDouble() - 0.5) * 0.005;
     }
 
     public void Move(double maxStepSize)
@@ -44,14 +44,14 @@ public class LocomotiveEngine
         
         
         var target = _route.Waypoints[_currentWaypointIndex];
-        double latDiff = target.Lat - CurrentLat;
-        double lonDiff = target.Lon - CurrentLon;
+        double latDiff = target.Latitude - CurrentLat;
+        double lonDiff = target.Longitude - CurrentLon;
         double distance = Math.Sqrt(latDiff * latDiff + lonDiff * lonDiff);
         
         bool isLastWaypoint = _currentWaypointIndex == _route.Waypoints.Count - 1;
         bool isIntermediateStation = _stops.Any(s => 
-            Math.Abs(s.Latitude - target.Lat) < 0.0001 && 
-            Math.Abs(s.Longitude - target.Lon) < 0.0001);
+            Math.Abs(s.Latitude - target.Latitude) < 0.0001 && 
+            Math.Abs(s.Longitude - target.Longitude) < 0.0001);
         bool isStation = isLastWaypoint || isIntermediateStation;
         
         
@@ -61,7 +61,7 @@ public class LocomotiveEngine
         {
             if (_counter > 1) _counter--; 
         }
-        else if (_counter < 60 && !isStation) //??? => isLastWayPoint => isStation
+        else if (_counter < 60 && !isStation)
         {
             _counter++;
         }
@@ -78,8 +78,8 @@ public class LocomotiveEngine
         
         if (distance <= actualStepSize || distance < 0.000001)
         {
-            CurrentLat = target.Lat;
-            CurrentLon = target.Lon;
+            CurrentLat = target.Latitude;
+            CurrentLon = target.Longitude;
             
             _currentWaypointIndex++;
             if (_currentWaypointIndex >= _route.Waypoints.Count)
@@ -98,8 +98,8 @@ public class LocomotiveEngine
             }
             
             target = _route.Waypoints[_currentWaypointIndex];
-            latDiff = target.Lat - CurrentLat;
-            lonDiff = target.Lon - CurrentLon;
+            latDiff = target.Latitude - CurrentLat;
+            lonDiff = target.Longitude - CurrentLon;
             distance = Math.Sqrt(latDiff * latDiff + lonDiff * lonDiff);
         }
 
