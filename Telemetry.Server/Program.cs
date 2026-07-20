@@ -12,6 +12,7 @@ builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<IWaypointService, WaypointService>();
 builder.Services.AddScoped<ITrainStopService, TrainStopService>();
+builder.Services.AddScoped<IFixDataService, FixDataService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddCors(options =>
