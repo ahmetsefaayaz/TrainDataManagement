@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Telemetry.Server.Data;
 using Telemetry.Server.Interfaces;
+using Telemetry.Server.SeedData;
 using Telemetry.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
+builder.Services.AddScoped<IRouteService, RouteService>();
+builder.Services.AddScoped<IWaypointService, WaypointService>();
+builder.Services.AddScoped<ITrainStopService, TrainStopService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddCors(options =>
@@ -16,7 +20,7 @@ builder.Services.AddCors(options =>
     {
         policy.AllowAnyHeader()
             .AllowAnyMethod()
-            .SetIsOriginAllowed(_ => true); // Şimdilik tüm kaynaklara izin verelim
+            .SetIsOriginAllowed(_ => true); 
     });
 });
 
@@ -28,8 +32,21 @@ var app = builder.Build();
 app.UseCors("AllowAll");
 app.MapControllers();
 
-app.MapGet("/", () => "Telemetri Sunucusu Çalışıyor. Arka planda 5000 portu dinleniyor...");
 
-// app.UseHttpsRedirection();
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        context.Database.EnsureCreated(); 
+        
+        Seeder.Initialize(context);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Seed işlemi sırasında hata oluştu: {ex.Message}");
+    }
+}
 
 app.Run();
