@@ -6,6 +6,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let currentPolyline = null;
+let currentPatchedPolyline = null;
 let currentMarkers = [];
 
 async function fetchRoute() {
@@ -48,6 +49,9 @@ async function fetchRoute() {
         if (currentPolyline) {
             map.removeLayer(currentPolyline);
         }
+        if (currentPatchedPolyline) {
+            map.removeLayer(currentPatchedPolyline);
+        }
         currentMarkers.forEach(marker => map.removeLayer(marker));
         currentMarkers = [];
         
@@ -55,8 +59,8 @@ async function fetchRoute() {
         const patchedSegments = [];
         let currentSegment = [];
         
-        //Şimdilik manuel olarak 1 yazdık
-        const currentRouteId = 1;
+        //Şimdilik manuel olarak 4 yazdık
+        const currentRouteId = 4;
 
         for (let i = 0; i < data.length; i++) {
             const point = data[i];
@@ -80,7 +84,7 @@ async function fetchRoute() {
                         if(fixResponse.ok) {
                             const missingWaypoints = await fixResponse.json();
                             const patchedCoords = missingWaypoints.map(w => [w.latitude, w.longitude]);
-                            if(patchedCoords.length > 0) {
+                            if(patchedCoords.length > 1) {
                                 patchedSegments.push(patchedCoords);
                             }
                         }
@@ -105,7 +109,7 @@ async function fetchRoute() {
         }
 
         if (patchedSegments.length > 0) {
-            L.polyline(patchedSegments, {
+            currentPatchedPolyline = L.polyline(patchedSegments, {
                 color: 'gray',
                 weight: 4,
                 dashArray: '10, 10'
