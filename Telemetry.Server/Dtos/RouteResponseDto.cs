@@ -4,7 +4,6 @@ namespace Telemetry.Server.Dtos;
 
 public class RouteResponseDto
 {
-    public List<Waypoint> SmoothedPath { get; set; } = new List<Waypoint>();
-        
+    public List<RouteSegmentDto> Segments { get; set; } = new List<RouteSegmentDto>();
     public List<TrainLocationRecord> TelemetryData { get; set; } = new List<TrainLocationRecord>();
 }
