@@ -6,7 +6,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let currentPolyline = null;
-let currentPatchedPolyline = null;
 let currentMarkers = [];
 
 async function fetchRoute() {
@@ -37,105 +36,53 @@ async function fetchRoute() {
             throw new Error("HTTP Hatası: " + response.status);
         }
 
-        const data = await response.json();
+        const rawData = await response.json();
 
-        if (data.length === 0) {
+        const telemetryList = rawData.telemetryData || rawData.TelemetryData || [];
+        const smoothedPath = rawData.smoothedPath || rawData.SmoothedPath || [];
+
+        if (telemetryList.length === 0 && smoothedPath.length === 0) {
             alert("Bu tarih aralığında, bu lokomotife ait kayıt bulunamadı.");
             return;
         }
 
-        const latLngs = data.map(point => [point.latitude, point.longitude]);
-
         if (currentPolyline) {
             map.removeLayer(currentPolyline);
         }
-        if (currentPatchedPolyline) {
-            map.removeLayer(currentPatchedPolyline);
-        }
         currentMarkers.forEach(marker => map.removeLayer(marker));
         currentMarkers = [];
-        
-        const segments = [];
-        const patchedSegments = [];
-        let currentSegment = [];
-        
-        //Şimdilik manuel olarak 4 yazdık
-        const currentRouteId = 4;
 
-        for (let i = 0; i < data.length; i++) {
-            const point = data[i];
-            const currentPointTime = new Date(point.recordedAt || point.RecordedAt).getTime();
+        if (smoothedPath.length > 0) {
+            const pathCoords = smoothedPath.map(w => [w.latitude || w.Latitude, w.longitude || w.Longitude]);
 
-            if (i > 0) {
-                const prevPoint = data[i - 1];
-                const prevPointTime = new Date(prevPoint.recordedAt || prevPoint.RecordedAt).getTime();
-
-                const timeDiff = currentPointTime - prevPointTime;
-
-                if (timeDiff > 200) {
-                    segments.push(currentSegment);
-                    currentSegment = [];
-
-                    try {
-                        const fixUrl = `http://localhost:5215/api/fixdata/fix?startLat=${prevPoint.latitude}&startLon=${prevPoint.longitude}&endLat=${point.latitude}&endLon=${point.longitude}&routeId=${currentRouteId}`;
-                        
-                        const fixResponse = await fetch(fixUrl);
-
-                        if(fixResponse.ok) {
-                            const missingWaypoints = await fixResponse.json();
-                            const patchedCoords = missingWaypoints.map(w => [w.latitude, w.longitude]);
-                            if(patchedCoords.length > 1) {
-                                patchedSegments.push(patchedCoords);
-                            }
-                        }
-                    } catch(err) {
-                        console.error("Yama verisi çekilemedi: ", err);
-                    }
-                    
-                }
-            }
-
-            currentSegment.push([point.latitude, point.longitude]);
-
-            if (i === data.length - 1) {
-                segments.push(currentSegment);
-            }
-        }
-        const validSegments = segments.filter(seg => seg.length > 1);
-        
-        if (validSegments.length > 0) {
-            currentPolyline = L.polyline(validSegments, { color: 'blue', weight: 4 }).addTo(map);
+            currentPolyline = L.polyline(pathCoords, { color: 'blue', weight: 4 }).addTo(map);
             map.fitBounds(currentPolyline.getBounds());
         }
 
-        if (patchedSegments.length > 0) {
-            currentPatchedPolyline = L.polyline(patchedSegments, {
-                color: 'gray',
-                weight: 4,
-                dashArray: '10, 10'
-            }).addTo(map);
-        }
-        
-        //Hız 0 olduysa kırmızı nokta oluştur.
         const knownStops = [];
-        data.forEach(point => {
-            if (point.speed === 0 || point.Speed === 0) {
 
+        telemetryList.forEach(point => {
+            const speed = point.speed !== undefined ? point.speed : point.Speed;
+            const lat = point.latitude || point.Latitude;
+            const lon = point.longitude || point.Longitude;
+            const time = point.recordedAt || point.RecordedAt;
+
+            if (speed === 0) {
                 const alreadyAdded = knownStops.some(
-                    stop => Math.abs(stop.lat - point.latitude) < 0.0001 && Math.abs(stop.lon - point.longitude) < 0.0001
+                    stop => Math.abs(stop.lat - lat) < 0.0001 && Math.abs(stop.lon - lon) < 0.0001
                 );
 
                 if (!alreadyAdded) {
-                    knownStops.push({ lat: point.latitude, lon: point.longitude });
+                    knownStops.push({ lat: lat, lon: lon });
 
-                    const marker = L.circleMarker([point.latitude, point.longitude], {
+                    const marker = L.circleMarker([lat, lon], {
                         color: 'darkred',
                         fillColor: 'red',
                         fillOpacity: 1,
                         radius: 6
                     }).addTo(map);
 
-                    const timeString = new Date(point.recordedAt || point.RecordedAt).toLocaleTimeString('tr-TR');
+                    const timeString = new Date(time).toLocaleTimeString('tr-TR');
                     marker.bindPopup(`<b>İstasyon / Bekleme Noktası</b><br>Varış: ${timeString}`);
 
                     currentMarkers.push(marker);
@@ -143,7 +90,6 @@ async function fetchRoute() {
             }
         });
 
-        map.fitBounds(currentPolyline.getBounds());
         console.log(`Başarılı! Lokomotif ${locoId} için rota çizildi.`);
 
     } catch (error) {
