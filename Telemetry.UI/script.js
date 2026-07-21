@@ -5,7 +5,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
 }).addTo(map);
 
-let currentPolyline = null;
+let currentPolylines = [];
 let currentMarkers = [];
 
 async function fetchRoute() {
@@ -14,13 +14,8 @@ async function fetchRoute() {
     const endDate = document.getElementById('endDate').value;
     const btn = document.getElementById('drawBtn');
 
-    if (!locoId) {
-        alert("Lütfen geçerli bir Lokomotif ID girin! (Örn: 1)");
-        return;
-    }
-
-    if (!startDate || !endDate) {
-        alert("Lütfen başlangıç ve bitiş tarihlerini seçin.");
+    if (!locoId || !startDate || !endDate) {
+        alert("Lütfen tüm alanları doldurun.");
         return;
     }
 
@@ -31,36 +26,53 @@ async function fetchRoute() {
         btn.disabled = true;
 
         const response = await fetch(url);
+        if (!response.ok) throw new Error("HTTP Hatası: " + response.status);
 
-        if (!response.ok) {
-            throw new Error("HTTP Hatası: " + response.status);
-        }
+        const data = await response.json();
 
-        const rawData = await response.json();
+        // C#'tan gelen tertemiz veriler
+        const segments = data.segments || data.Segments || [];
+        const telemetryList = data.telemetryData || data.TelemetryData || [];
 
-        const telemetryList = rawData.telemetryData || rawData.TelemetryData || [];
-        const smoothedPath = rawData.smoothedPath || rawData.SmoothedPath || [];
-
-        if (telemetryList.length === 0 && smoothedPath.length === 0) {
-            alert("Bu tarih aralığında, bu lokomotife ait kayıt bulunamadı.");
+        if (segments.length === 0 && telemetryList.length === 0) {
+            alert("Kayıt bulunamadı.");
             return;
         }
 
-        if (currentPolyline) {
-            map.removeLayer(currentPolyline);
-        }
-        currentMarkers.forEach(marker => map.removeLayer(marker));
+        // Harita Temizliği
+        currentPolylines.forEach(p => map.removeLayer(p));
+        currentPolylines = [];
+        currentMarkers.forEach(m => map.removeLayer(m));
         currentMarkers = [];
 
-        if (smoothedPath.length > 0) {
-            const pathCoords = smoothedPath.map(w => [w.latitude || w.Latitude, w.longitude || w.Longitude]);
+        // 1. EFSANEVİ ÇİZGİLER (Mavi ve Gri Kesikli)
+        segments.forEach(segment => {
+            const isGap = segment.isGap !== undefined ? segment.isGap : segment.IsGap;
+            const coordsList = segment.coordinates || segment.Coordinates || [];
 
-            currentPolyline = L.polyline(pathCoords, { color: 'blue', weight: 4 }).addTo(map);
-            map.fitBounds(currentPolyline.getBounds());
+            if (coordsList.length > 0) {
+                const latLngs = coordsList.map(w => [w.latitude || w.Latitude, w.longitude || w.Longitude]);
+
+                let polyline;
+                if (isGap) {
+                    // Kopukluk ise Gri ve Kesikli çiz
+                    polyline = L.polyline(latLngs, { color: 'gray', weight: 4, dashArray: '10, 10' }).addTo(map);
+                } else {
+                    // Aktif sürüş ise Mavi ve Düz çiz
+                    polyline = L.polyline(latLngs, { color: 'blue', weight: 4 }).addTo(map);
+                }
+                currentPolylines.push(polyline);
+            }
+        });
+
+        // Haritayı rotaya odakla
+        if (currentPolylines.length > 0) {
+            const group = new L.featureGroup(currentPolylines);
+            map.fitBounds(group.getBounds());
         }
 
+        // 2. İSTASYON NOKTALARI (Kırmızı)
         const knownStops = [];
-
         telemetryList.forEach(point => {
             const speed = point.speed !== undefined ? point.speed : point.Speed;
             const lat = point.latitude || point.Latitude;
@@ -74,27 +86,20 @@ async function fetchRoute() {
 
                 if (!alreadyAdded) {
                     knownStops.push({ lat: lat, lon: lon });
-
                     const marker = L.circleMarker([lat, lon], {
-                        color: 'darkred',
-                        fillColor: 'red',
-                        fillOpacity: 1,
-                        radius: 6
+                        color: 'darkred', fillColor: 'red', fillOpacity: 1, radius: 6
                     }).addTo(map);
 
                     const timeString = new Date(time).toLocaleTimeString('tr-TR');
                     marker.bindPopup(`<b>İstasyon / Bekleme Noktası</b><br>Varış: ${timeString}`);
-
                     currentMarkers.push(marker);
                 }
             }
         });
 
-        console.log(`Başarılı! Lokomotif ${locoId} için rota çizildi.`);
-
     } catch (error) {
         console.error("Hata:", error);
-        alert("Veri çekilemedi. Konsolu kontrol edin.");
+        alert("Veri çekilemedi.");
     } finally {
         btn.textContent = "Rotayı Çiz";
         btn.disabled = false;

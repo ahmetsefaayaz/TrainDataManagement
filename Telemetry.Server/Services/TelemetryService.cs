@@ -14,6 +14,7 @@ namespace Telemetry.Server.Services
         {
             _context = context;
         }
+
         public async Task<RouteResponseDto> GetData(DateTime startDate, DateTime endDate, short locomotiveId)
         {
             DateTime startUtc = DateTime.SpecifyKind(startDate, DateTimeKind.Local).ToUniversalTime();
@@ -34,38 +35,69 @@ namespace Telemetry.Server.Services
 
             var response = new RouteResponseDto { TelemetryData = telemetryData };
 
-            if (!telemetryData.Any())
-                return response;
+            if (!telemetryData.Any()) return response;
 
-            var firstPoint = telemetryData.First();
-            var lastPoint = telemetryData.Last();
-            
             var allWaypoints = await _context.Waypoints.ToListAsync();
-
-            if (!allWaypoints.Any())
-                return response;
-
+            if (!allWaypoints.Any()) return response;
             
-            var startWaypoint = allWaypoints
-                .OrderBy(w => GetDistance(firstPoint.Latitude, firstPoint.Longitude, w.Latitude, w.Longitude))
-                .First();
+            var currentRawSegment = new List<TrainLocationRecord>();
 
-            var endWaypoint = allWaypoints
-                .OrderBy(w => GetDistance(lastPoint.Latitude, lastPoint.Longitude, w.Latitude, w.Longitude))
-                .First();
+            for (int i = 0; i < telemetryData.Count; i++)
+            {
+                var point = telemetryData[i];
 
-            
-            var minIndex = Math.Min(startWaypoint.OrderIndex, endWaypoint.OrderIndex);
-            var maxIndex = Math.Max(startWaypoint.OrderIndex, endWaypoint.OrderIndex);
+                if (i > 0)
+                {
+                    var prevPoint = telemetryData[i - 1];
+                    var timeDiff = (point.RecordedAt - prevPoint.RecordedAt).TotalMilliseconds;
+
+                    if (timeDiff > 2000)
+                    {
+                        if (currentRawSegment.Any())
+                        {
+                            response.Segments.Add(new RouteSegmentDto
+                            {
+                                IsGap = false,
+                                Coordinates = GetSmoothedWaypointsBetween(currentRawSegment.First(), currentRawSegment.Last(), allWaypoints)
+                            });
+                            currentRawSegment.Clear();
+                        }
+
+                        response.Segments.Add(new RouteSegmentDto
+                        {
+                            IsGap = true,
+                            Coordinates = GetSmoothedWaypointsBetween(prevPoint, point, allWaypoints)
+                        });
+                    }
+                }
+
+                currentRawSegment.Add(point);
+            }
+            if (currentRawSegment.Any())
+            {
+                response.Segments.Add(new RouteSegmentDto
+                {
+                    IsGap = false,
+                    Coordinates = GetSmoothedWaypointsBetween(currentRawSegment.First(), currentRawSegment.Last(), allWaypoints)
+                });
+            }
+            return response;
+        }
+
+        private List<Waypoint> GetSmoothedWaypointsBetween(TrainLocationRecord start, TrainLocationRecord end, List<Waypoint> allWaypoints)
+        {
+            var startWp = allWaypoints.OrderBy(w => GetDistance(start.Latitude, start.Longitude, w.Latitude, w.Longitude)).First();
+            var endWp = allWaypoints.OrderBy(w => GetDistance(end.Latitude, end.Longitude, w.Latitude, w.Longitude)).First();
+
+            var minIndex = Math.Min(startWp.OrderIndex, endWp.OrderIndex);
+            var maxIndex = Math.Max(startWp.OrderIndex, endWp.OrderIndex);
 
             var routeWaypoints = allWaypoints
-                .Where(w => w.RouteId == startWaypoint.RouteId && w.OrderIndex >= minIndex && w.OrderIndex <= maxIndex)
+                .Where(w => w.RouteId == startWp.RouteId && w.OrderIndex >= minIndex && w.OrderIndex <= maxIndex)
                 .OrderBy(w => w.OrderIndex)
                 .ToList();
-            
-            response.SmoothedPath = RouteSmootherService.SmoothRoute(routeWaypoints, 10);
 
-            return response;
+            return RouteSmootherService.SmoothRoute(routeWaypoints, 10);
         }
 
         private double GetDistance(double lat1, double lon1, double lat2, double lon2)
