@@ -1,8 +1,9 @@
-﻿using Telemetry.Server.Models;
+﻿using Telemetry.Server.Dtos;
+using Telemetry.Server.Models;
 
 namespace Telemetry.Server.Interfaces;
 
 public interface ITelemetryService
 {
-    Task<List<TrainLocationRecord>> GetData(DateTime startDate, DateTime endDate, short locomotiveId);
+    Task<RouteResponseDto> GetData(DateTime startDate, DateTime endDate, short locomotiveId);
 }

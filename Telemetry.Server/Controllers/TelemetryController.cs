@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Telemetry.Server.Interfaces;
+using Telemetry.Server.Services;
 
 namespace Telemetry.Server.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
-public class TelemetryController: ControllerBase
+public class TelemetryController : ControllerBase
 {
     private readonly ITelemetryService _telemetryService;
 
