@@ -76,7 +76,7 @@ class Program
                     if (engine.IsFinished)
                         break;
                         
-                    await Task.Delay(10);
+                    await Task.Delay(1000);
                 }
                 
                 if(engine.IsFinished)
