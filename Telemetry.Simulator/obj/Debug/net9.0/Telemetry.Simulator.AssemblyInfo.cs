@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Telemetry.Simulator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7e60589f80eded02d6c715d3d7071d8271ae8168")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+16c5e6ac1fdd1864f0ee2d5755c17eba27cd7d85")]
 [assembly: System.Reflection.AssemblyProductAttribute("Telemetry.Simulator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Telemetry.Simulator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

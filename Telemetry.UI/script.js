@@ -30,7 +30,6 @@ async function fetchRoute() {
 
         const data = await response.json();
 
-        // C#'tan gelen tertemiz veriler
         const segments = data.segments || data.Segments || [];
         const telemetryList = data.telemetryData || data.TelemetryData || [];
 
@@ -39,13 +38,11 @@ async function fetchRoute() {
             return;
         }
 
-        // Harita Temizliği
         currentPolylines.forEach(p => map.removeLayer(p));
         currentPolylines = [];
         currentMarkers.forEach(m => map.removeLayer(m));
         currentMarkers = [];
 
-        // 1. EFSANEVİ ÇİZGİLER (Mavi ve Gri Kesikli)
         segments.forEach(segment => {
             const isGap = segment.isGap !== undefined ? segment.isGap : segment.IsGap;
             const coordsList = segment.coordinates || segment.Coordinates || [];
@@ -55,23 +52,19 @@ async function fetchRoute() {
 
                 let polyline;
                 if (isGap) {
-                    // Kopukluk ise Gri ve Kesikli çiz
                     polyline = L.polyline(latLngs, { color: 'gray', weight: 4, dashArray: '10, 10' }).addTo(map);
                 } else {
-                    // Aktif sürüş ise Mavi ve Düz çiz
                     polyline = L.polyline(latLngs, { color: 'blue', weight: 4 }).addTo(map);
                 }
                 currentPolylines.push(polyline);
             }
         });
 
-        // Haritayı rotaya odakla
         if (currentPolylines.length > 0) {
             const group = new L.featureGroup(currentPolylines);
             map.fitBounds(group.getBounds());
         }
 
-        // 2. İSTASYON NOKTALARI (Kırmızı)
         const knownStops = [];
         telemetryList.forEach(point => {
             const speed = point.speed !== undefined ? point.speed : point.Speed;
