@@ -69,11 +69,14 @@ public class LocomotiveEngine
         float speedRatio = _counter / 60f; 
         
         float maxSpeed = (float)(maxStepSize * 111 * 3600);
-        
-        CurrentSpeed = maxSpeed * speedRatio;
 
+        double randomFactor = 1.0 + (_rnd.NextDouble() - 0.5) * 0.1;
+        double noisySpeedRatio = speedRatio * randomFactor;
         
-        double actualStepSize = maxStepSize * speedRatio;
+        CurrentSpeed = (float)(maxSpeed * noisySpeedRatio);
+        
+        
+        double actualStepSize = maxStepSize * noisySpeedRatio;
 
         
         if (distance <= actualStepSize || distance < 0.000001)

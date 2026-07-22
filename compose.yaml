@@ -1,0 +1,30 @@
+﻿version: '3.8'
+
+services:
+  telemetry-server:
+    build:
+      context: .
+      dockerfile: Telemetry.Server/Dockerfile
+    container_name: telemetry_api
+    ports:
+      - "5215:8080"
+    restart: always
+  
+  telemetry-ui:
+    build:
+      context: .
+      dockerfile: Telemetry.UI/Dockerfile
+    container_name: telemetry_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - telemetry-server 
+  
+  telemetry-simulator:
+    build:
+      context: .
+      dockerfile: Telemetry.Simulator/Dockerfile
+    container_name: telemetry_engine
+    depends_on:
+      - telemetry-server
+    restart: unless-stopped
