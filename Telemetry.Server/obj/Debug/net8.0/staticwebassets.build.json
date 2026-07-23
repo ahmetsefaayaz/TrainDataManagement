@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "wwCl4MZqnBmk0shf15h/swxDsYfqTvY0nm9/tQbU4EY=",
+  "Source": "Telemetry.Server",
+  "BasePath": "_content/Telemetry.Server",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
