@@ -76,7 +76,7 @@ class Program
                     if (engine.IsFinished)
                         break;
                         
-                    await Task.Delay(1000);
+                    await Task.Delay(10);
                 }
                 
                 if(engine.IsFinished)
@@ -92,15 +92,19 @@ class Program
     
     public static bool IsInBlindZone(double currentLat, double currentLon)
     {
-        double minLat = 39.5439; 
-        double maxLat = 39.6912;
-        double minLon = 31.8739;
-        double maxLon = 32.1070; 
-
-        if (currentLat >= minLat && currentLat <= maxLat && 
-            currentLon >= minLon && currentLon <= maxLon)
+        var blindSpots = new List<(double MinLat, double MaxLat, double MinLon, double MaxLon)>
         {
-            return true;
+            (39.5439, 39.6912, 31.8739, 32.1070), 
+            (38.5951, 38.6639, 27.1514, 27.2517),
+        };
+        
+        foreach (var zone in blindSpots)
+        {
+            if (currentLat >= zone.MinLat && currentLat <= zone.MaxLat && 
+                currentLon >= zone.MinLon && currentLon <= zone.MaxLon)
+            {
+                return true;
+            }
         }
 
         return false;
