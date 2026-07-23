@@ -98,11 +98,6 @@ C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\Telemetry.
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\Telemetry.Server.sourcelink.json
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets.build.json
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets.development.json
-C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets\msbuild.Telemetry.Server.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets\msbuild.build.Telemetry.Server.props
-C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Telemetry.Server.props
-C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Telemetry.Server.props
-C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\scopedcss\bundle\Telemetry.Server.styles.css
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\Telemetr.2D3FB859.Up2Date
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\Telemetry.Server.dll
@@ -110,3 +105,8 @@ C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\refint\Tel
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\Telemetry.Server.pdb
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\Telemetry.Server.genruntimeconfig.cache
 C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\ref\Telemetry.Server.dll
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets\msbuild.Telemetry.Server.Microsoft.AspNetCore.StaticWebAssets.props
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets\msbuild.build.Telemetry.Server.props
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Telemetry.Server.props
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Telemetry.Server.props
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.Server\obj\Debug\net8.0\staticwebassets.pack.json

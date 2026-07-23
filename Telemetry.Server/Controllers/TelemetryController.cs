@@ -21,4 +21,19 @@ public class TelemetryController : ControllerBase
         var result = await _telemetryService.GetData(startDate, endDate, locomotiveId);
         return Ok(result);
     }
+
+    [HttpGet("simulation")]
+    public async Task<IActionResult> GetSimulation(short locomotiveId, DateTime startDate, DateTime endDate)
+    {
+        var startUtc = startDate.ToUniversalTime();
+        var endUtc = endDate.ToUniversalTime();
+        var simulationFrames = await _telemetryService.GetSimulationFramesAsync(locomotiveId, startUtc,endUtc);
+    
+        if (simulationFrames == null || !simulationFrames.Any())
+        {
+            return NotFound("Bu tarih aralığında simülasyon verisi bulunamadı.");
+        }
+
+        return Ok(simulationFrames);
+    }
 }

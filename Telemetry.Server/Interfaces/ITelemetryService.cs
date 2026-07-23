@@ -6,4 +6,5 @@ namespace Telemetry.Server.Interfaces;
 public interface ITelemetryService
 {
     Task<RouteResponseDto> GetData(DateTime startDate, DateTime endDate, short locomotiveId);
+    Task<List<SimulationFrameDto>> GetSimulationFramesAsync(short trainId, DateTime startTime, DateTime endTime);
 }
