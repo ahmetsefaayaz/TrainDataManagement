@@ -29,6 +29,20 @@
     <input type="datetime-local" id="endDate" />
 
     <button id="drawBtn" onclick="fetchRoute()">Rotayı Çiz</button>
+    <button id="simBtn" onclick="startSimulation()">Simüle Et</button>
+
+    <label for="simMultiplier">Hız:</label>
+    <select id="simMultiplier">
+        <option value="1">1x (Gerçek Zamanlı)</option>
+        <option value="5">5x Hızlandırılmış</option>
+        <option value="10">10x Hızlandırılmış</option>
+        <option value="50">50x Hızlandırılmış</option>
+    </select>
+
+    <div style="margin-top: 10px; padding: 10px; background-color: #f4f4f4; border-radius: 5px; color: #333;">
+        <strong>Durum:</strong> <span id="simStatus">-</span> |
+        <strong>Hız:</strong> <span id="simSpeedText">0.0 km/h</span>
+    </div>
 </div>
 
 <!-- Harita -->

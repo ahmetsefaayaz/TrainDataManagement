@@ -104,5 +104,42 @@ namespace Telemetry.Server.Services
         {
             return Math.Sqrt(Math.Pow(lat1 - lat2, 2) + Math.Pow(lon1 - lon2, 2));
         }
+        public async Task<List<SimulationFrameDto>> GetSimulationFramesAsync(short trainId, DateTime startTime, DateTime endTime)
+        {
+            
+            var rawRecords = await _context.TrainLocations
+                .Where(r => r.LocomotiveId == trainId && r.RecordedAt >= startTime && r.RecordedAt <= endTime)
+                .OrderBy(r => r.RecordedAt)
+                .ToListAsync();
+
+            var frames = new List<SimulationFrameDto>();
+            
+            for (int i = 0; i < rawRecords.Count; i++)
+            {
+                var current = rawRecords[i];
+                bool isActive = true;
+                
+                if (i > 0)
+                {
+                    var previous = rawRecords[i - 1];
+                    if ((current.RecordedAt - previous.RecordedAt).TotalSeconds > 10)
+                    {
+                        isActive = false; 
+                    }
+                }
+
+                frames.Add(new SimulationFrameDto
+                {
+                    Latitude = current.Latitude,
+                    Longitude = current.Longitude,
+                    Speed = current.Speed,
+                    Timestamp = current.RecordedAt,
+                    IsActive = isActive
+                });
+            }
+
+            return frames;
+        }
     }
+    
 }

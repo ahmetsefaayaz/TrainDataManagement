@@ -16,7 +16,7 @@ async function fetchRoute() {
 
     if (!locoId || !startDate || !endDate) {
         alert("Lütfen tüm alanları doldurun.");
-        return;
+        return false;
     }
 
     const url = `http://localhost:5215/api/telemetry?startDate=${startDate}&endDate=${endDate}&locomotiveId=${locoId}`;
@@ -35,7 +35,7 @@ async function fetchRoute() {
 
         if (segments.length === 0 && telemetryList.length === 0) {
             alert("Kayıt bulunamadı.");
-            return;
+            return false;
         }
 
         currentPolylines.forEach(p => map.removeLayer(p));
@@ -89,15 +89,129 @@ async function fetchRoute() {
                 }
             }
         });
-
+        return true;
     } catch (error) {
         console.error("Hata:", error);
         alert("Veri çekilemedi.");
+        return false;
     } finally {
         btn.textContent = "Rotayı Çiz";
         btn.disabled = false;
     }
 }
+let simTimer = null;
+let simIndex = 0;
+let simFrames = [];
+let isPlaying = false;
+let traceLine = null;
+
+
+async function startSimulation() {
+    const locoId = document.getElementById('locoId').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const simBtn = document.getElementById('simBtn');
+
+    if (!locoId || !startDate || !endDate) return;
+
+    try {
+        simBtn.textContent = "Hazırlanıyor...";
+        simBtn.disabled = true;
+
+        const isRouteDrawn = await fetchRoute();
+        if (!isRouteDrawn) throw new Error("Rota çizilemedi.");
+
+        
+        const simUrl = `http://localhost:5215/api/telemetry/simulation?startDate=${startDate}&endDate=${endDate}&locomotiveId=${locoId}`;
+        const response = await fetch(simUrl);
+
+        if (!response.ok) throw new Error("API Hatası: " + response.status);
+
+        simFrames = await response.json();
+
+        if (simFrames.length === 0) {
+            alert("Simüle edilecek veri bulunamadı.");
+            simBtn.textContent = "Simüle Et";
+            simBtn.disabled = false;
+            return;
+        }
+        clearTimeout(simTimer);
+        simIndex = 0;
+        isPlaying = true;
+
+        if (traceLine) {
+            map.removeLayer(traceLine);
+        }
+
+        traceLine = L.polyline([], { color: 'red', weight: 6 }).addTo(map);
+
+        simBtn.textContent = "Yol Çiziliyor...";
+        document.getElementById('simStatus').innerText = "BAŞLIYOR...";
+
+        playFrame();
+
+    } catch (error) {
+        console.error("Hata:", error);
+        simBtn.textContent = "Simüle Et";
+        simBtn.disabled = false;
+        document.getElementById('simStatus').innerText = "HATA OLUŞTU";
+    }
+}
+
+function playFrame() {
+    if (!isPlaying || simIndex >= simFrames.length - 1) {
+        isPlaying = false;
+        document.getElementById('simBtn').textContent = "Simüle Et";
+        document.getElementById('simBtn').disabled = false;
+        document.getElementById('simStatus').innerText = "ÇİZİM TAMAMLANDI";
+        document.getElementById('simStatus').style.color = "black";
+        return;
+    }
+
+    const currentFrame = simFrames[simIndex];
+    const nextFrame = simFrames[simIndex + 1];
+
+    const lat = currentFrame.latitude ?? currentFrame.Latitude;
+    const lon = currentFrame.longitude ?? currentFrame.Longitude;
+    const speed = currentFrame.speed ?? currentFrame.Speed;
+    const isActive = currentFrame.isActive ?? currentFrame.IsActive;
+
+    const timestampA = currentFrame.timestamp ?? currentFrame.Timestamp;
+    const timestampB = nextFrame.timestamp ?? nextFrame.Timestamp;
+
+    
+    if (isActive) {
+        traceLine.addLatLng([lat, lon]);
+    }
+
+    document.getElementById('simSpeedText').innerText = parseFloat(speed).toFixed(1) + " km/h";
+    const statusEl = document.getElementById('simStatus');
+
+    if (!isActive) {
+        statusEl.innerText = "SİNYAL KAYBI";
+        statusEl.style.color = "gray";
+    } else if (speed === 0) {
+        statusEl.innerText = "İSTASYONDA BEKLİYOR";
+        statusEl.style.color = "orange";
+    } else {
+        statusEl.innerText = "HAT ÇİZİLİYOR";
+        statusEl.style.color = "red";
+    }
+
+    
+    const timeA = new Date(timestampA).getTime();
+    const timeB = new Date(timestampB).getTime();
+    const realDiffMs = timeB - timeA;
+
+    const multiplier = parseInt(document.getElementById('simMultiplier').value) || 1;
+    let waitTimeMs = realDiffMs / multiplier;
+
+    if (waitTimeMs > 2000) waitTimeMs = 2000;
+
+    simIndex++;
+    simTimer = setTimeout(playFrame, waitTimeMs);
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
