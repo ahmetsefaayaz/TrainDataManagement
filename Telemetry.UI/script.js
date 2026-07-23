@@ -206,7 +206,6 @@ function playFrame() {
     const multiplier = parseInt(document.getElementById('simMultiplier').value) || 1;
     let waitTimeMs = realDiffMs / multiplier;
 
-    if (waitTimeMs > 2000) waitTimeMs = 2000;
 
     simIndex++;
     simTimer = setTimeout(playFrame, waitTimeMs);
