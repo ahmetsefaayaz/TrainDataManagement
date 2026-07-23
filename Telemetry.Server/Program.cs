@@ -41,7 +41,7 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<AppDbContext>();
         context.Database.EnsureCreated(); 
         
-        Seeder.Initialize(context);
+        await Seeder.Initialize(context);
     }
     catch (Exception ex)
     {
