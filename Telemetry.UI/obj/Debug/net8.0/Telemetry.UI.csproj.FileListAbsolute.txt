@@ -1,0 +1,12 @@
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\bin\Debug\net8.0\Telemetry.UI.deps.json
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\bin\Debug\net8.0\Telemetry.UI.dll
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\bin\Debug\net8.0\Telemetry.UI.pdb
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\obj\Debug\net8.0\Telemetry.UI.GeneratedMSBuildEditorConfig.editorconfig
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\obj\Debug\net8.0\Telemetry.UI.AssemblyInfoInputs.cache
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\obj\Debug\net8.0\Telemetry.UI.AssemblyInfo.cs
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\obj\Debug\net8.0\Telemetry.UI.csproj.CoreCompileInputs.cache
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\obj\Debug\net8.0\Telemetry.UI.sourcelink.json
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\obj\Debug\net8.0\Telemetry.UI.dll
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\obj\Debug\net8.0\refint\Telemetry.UI.dll
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\obj\Debug\net8.0\Telemetry.UI.pdb
+C:\Code\ASP.NET\TrainDataManagement\Telemetry.UI\obj\Debug\net8.0\ref\Telemetry.UI.dll
