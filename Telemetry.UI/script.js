@@ -103,14 +103,20 @@ let simTimer = null;
 let simIndex = 0;
 let simFrames = [];
 let isPlaying = false;
-let traceLine = null;
 
+let simulationLines = [];
+let activeTraceLine = null; 
+let lastIsActiveState = null; 
 
 async function startSimulation() {
+    const simBtn = document.getElementById('simBtn');
+    if (isPlaying) {
+        cancelSimulation();
+        return;
+    }
     const locoId = document.getElementById('locoId').value;
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
-    const simBtn = document.getElementById('simBtn');
 
     if (!locoId || !startDate || !endDate) return;
 
@@ -121,7 +127,6 @@ async function startSimulation() {
         const isRouteDrawn = await fetchRoute();
         if (!isRouteDrawn) throw new Error("Rota çizilemedi.");
 
-        
         const simUrl = `http://localhost:5215/api/telemetry/simulation?startDate=${startDate}&endDate=${endDate}&locomotiveId=${locoId}`;
         const response = await fetch(simUrl);
 
@@ -135,17 +140,18 @@ async function startSimulation() {
             simBtn.disabled = false;
             return;
         }
+
         clearTimeout(simTimer);
         simIndex = 0;
         isPlaying = true;
 
-        if (traceLine) {
-            map.removeLayer(traceLine);
-        }
+        clearSimulationLayers();
 
-        traceLine = L.polyline([], { color: 'red', weight: 6 }).addTo(map);
+        lastIsActiveState = null;
+        activeTraceLine = null;
 
-        simBtn.textContent = "Yol Çiziliyor...";
+        simBtn.textContent = "Simülasyonu İptal Et";
+        simBtn.disabled = false;
         document.getElementById('simStatus').innerText = "BAŞLIYOR...";
 
         playFrame();
@@ -158,37 +164,71 @@ async function startSimulation() {
     }
 }
 
-function playFrame() {
-    if (!isPlaying || simIndex >= simFrames.length - 1) {
-        isPlaying = false;
-        document.getElementById('simBtn').textContent = "Simüle Et";
-        document.getElementById('simBtn').disabled = false;
-        document.getElementById('simStatus').innerText = "ÇİZİM TAMAMLANDI";
-        document.getElementById('simStatus').style.color = "black";
-        return;
+function cancelSimulation() {
+    isPlaying = false;
+    clearTimeout(simTimer);
+    simIndex = 0;
+
+    const simBtn = document.getElementById('simBtn');
+    simBtn.textContent = "Simüle Et";
+    simBtn.disabled = false;
+
+    const statusEl = document.getElementById('simStatus');
+    statusEl.innerText = "SİMÜLASYON İPTAL EDİLDİ";
+    statusEl.style.color = "red";
+    document.getElementById('simSpeedText').innerText = "0.0 km/h";
+
+    clearSimulationLayers();
+}
+
+function clearSimulationLayers() {
+    if (activeTraceLine) {
+        map.removeLayer(activeTraceLine);
+        activeTraceLine = null;
     }
+    simulationLines.forEach(line => map.removeLayer(line));
+    simulationLines = [];
+}
+
+function playFrame() {
+    if (!isPlaying) return;
 
     const currentFrame = simFrames[simIndex];
-    const nextFrame = simFrames[simIndex + 1];
-
     const lat = currentFrame.latitude ?? currentFrame.Latitude;
     const lon = currentFrame.longitude ?? currentFrame.Longitude;
     const speed = currentFrame.speed ?? currentFrame.Speed;
     const isActive = currentFrame.isActive ?? currentFrame.IsActive;
 
-    const timestampA = currentFrame.timestamp ?? currentFrame.Timestamp;
-    const timestampB = nextFrame.timestamp ?? nextFrame.Timestamp;
+    if (activeTraceLine === null || lastIsActiveState !== isActive) {
+        let points = [];
+        if (simIndex > 0 && activeTraceLine !== null) {
+            const prevFrame = simFrames[simIndex - 1];
+            const prevLat = prevFrame.latitude ?? prevFrame.Latitude;
+            const prevLon = prevFrame.longitude ?? prevFrame.Longitude;
+            points.push([prevLat, prevLon]);
+        }
+        points.push([lat, lon]);
 
-    
-    if (isActive) {
-        traceLine.addLatLng([lat, lon]);
+        let lineOptions = {
+            color: isActive ? 'red' : 'gray',
+            weight: 6
+        };
+        if (!isActive) {
+            lineOptions.dashArray = '10, 10';
+        }
+
+        activeTraceLine = L.polyline(points, lineOptions).addTo(map);
+        simulationLines.push(activeTraceLine);
+        lastIsActiveState = isActive;
+    } else {
+        activeTraceLine.addLatLng([lat, lon]);
     }
 
     document.getElementById('simSpeedText').innerText = parseFloat(speed).toFixed(1) + " km/h";
     const statusEl = document.getElementById('simStatus');
 
     if (!isActive) {
-        statusEl.innerText = "SİNYAL KAYBI";
+        statusEl.innerText = "SİNYAL KAYBI (Raydan Tahmin Ediliyor)";
         statusEl.style.color = "gray";
     } else if (speed === 0) {
         statusEl.innerText = "İSTASYONDA BEKLİYOR";
@@ -198,7 +238,18 @@ function playFrame() {
         statusEl.style.color = "red";
     }
 
-    
+    if (simIndex >= simFrames.length - 1) {
+        isPlaying = false;
+        document.getElementById('simBtn').textContent = "Simüle Et";
+        document.getElementById('simBtn').disabled = false;
+        document.getElementById('simStatus').innerText = "ÇİZİM TAMAMLANDI";
+        document.getElementById('simStatus').style.color = "black";
+        return; 
+    }
+    const nextFrame = simFrames[simIndex + 1];
+    const timestampA = currentFrame.timestamp ?? currentFrame.Timestamp;
+    const timestampB = nextFrame.timestamp ?? nextFrame.Timestamp;
+
     const timeA = new Date(timestampA).getTime();
     const timeB = new Date(timestampB).getTime();
     const realDiffMs = timeB - timeA;
@@ -206,11 +257,9 @@ function playFrame() {
     const multiplier = parseInt(document.getElementById('simMultiplier').value) || 1;
     let waitTimeMs = realDiffMs / multiplier;
 
-
     simIndex++;
     simTimer = setTimeout(playFrame, waitTimeMs);
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
