@@ -120,44 +120,67 @@ namespace Telemetry.Server.Services
         {
             var allWaypoints = await _context.Waypoints.ToListAsync();
             var frames = new List<SimulationFrameDto>();
+            
             for (int i = 0; i < records.Count; i++)
             {
                 var current = records[i];
-                bool canMapMatch = allWaypoints.Any(w => 
-                    GetDistance(w.Latitude, w.Longitude, current.Latitude, current.Longitude) < 0.002);
-                bool isActive = true;
-                if (i > 0)
+
+                if (i == 0)
                 {
-                    var previous = records[i - 1];
-                    if ((current.RecordedAt - previous.RecordedAt).TotalMilliseconds > 5000)
+                    var matchedFirst = allWaypoints.OrderBy(w => GetDistance(current.Latitude, current.Longitude, w.Latitude, w.Longitude)).First();
+                    frames.Add(new SimulationFrameDto
                     {
-                        isActive = false;
-                    }
-                }
-                var matchedLat = current.Latitude;
-                var matchedLon = current.Longitude;
-                
-                if (canMapMatch)
-                {
-                    var closestWaypoint = allWaypoints
-                        .OrderBy(w => GetDistance(current.Latitude, current.Longitude, w.Latitude, w.Longitude))
-                        .First();
-                
-                    matchedLat = closestWaypoint.Latitude;
-                    matchedLon = closestWaypoint.Longitude;
+                        Latitude = matchedFirst.Latitude,
+                        Longitude = matchedFirst.Longitude,
+                        Speed = current.Speed,
+                        Timestamp = current.RecordedAt,
+                        IsActive = true
+                    });
+                    continue;
                 }
 
+                var previous = records[i - 1];
+                var timeDiffMs = (current.RecordedAt - previous.RecordedAt).TotalMilliseconds;
+
+                if (timeDiffMs > 2000)
+                {
+                    var locations = new List<TrainLocationRecord> { previous, current };
+                    var response = new RouteResponseDto { TelemetryData = locations };
+                    
+                    var matchedResponse = await CreateSegmentsAsync(response);
+                    var segment = matchedResponse.Segments.FirstOrDefault(s => s.IsGap);
+
+                    if (segment != null && segment.Coordinates.Any())
+                    {
+                        var waypoints = segment.Coordinates;
+                        int waypointCount = waypoints.Count;
+
+                        for (int j = 0; j < waypointCount; j++)
+                        {
+                            var waypoint = waypoints[j];
+                            
+                            frames.Add(new SimulationFrameDto
+                            {
+                                Latitude = waypoint.Latitude,
+                                Longitude = waypoint.Longitude,
+                                IsActive = false,
+                                Speed = current.Speed,
+                                Timestamp = current.RecordedAt
+                            });
+                        }
+                    }
+                }
                 frames.Add(new SimulationFrameDto
                 {
-                    Latitude = matchedLat,
-                    Longitude = matchedLon,
-                    Speed = current.Speed,
+                    Latitude = current.Latitude,
+                    Longitude = current.Longitude,
+                    Speed = current.Speed,  
                     Timestamp = current.RecordedAt,
-                    IsActive = isActive
+                    IsActive = true 
                 });
             }
+
             return frames;
         }
     }
-    
 }
