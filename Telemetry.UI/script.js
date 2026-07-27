@@ -228,7 +228,7 @@ function playFrame() {
     const statusEl = document.getElementById('simStatus');
 
     if (!isActive) {
-        statusEl.innerText = "SİNYAL KAYBI (Raydan Tahmin Ediliyor)";
+        statusEl.innerText = "SİNYAL KAYBI";
         statusEl.style.color = "gray";
     } else if (speed === 0) {
         statusEl.innerText = "İSTASYONDA BEKLİYOR";
@@ -253,6 +253,11 @@ function playFrame() {
     const timeA = new Date(timestampA).getTime();
     const timeB = new Date(timestampB).getTime();
     const realDiffMs = timeB - timeA;
+    if (realDiffMs > 2000) {
+        statusEl.innerText = "SİNYAL KOPTU";
+        statusEl.style.color = "gray";
+        document.getElementById('simSpeedText').innerText = "? km/h"; 
+    }
 
     const multiplier = parseInt(document.getElementById('simMultiplier').value) || 1;
     let waitTimeMs = realDiffMs / multiplier;
