@@ -1,11 +1,1 @@
-{
-  "Version": 1,
-  "Hash": "wwCl4MZqnBmk0shf15h/swxDsYfqTvY0nm9/tQbU4EY=",
-  "Source": "Telemetry.Server",
-  "BasePath": "_content/Telemetry.Server",
-  "Mode": "Default",
-  "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
-}
+{"Version":1,"Hash":"dLQ2nWtX6l4ZAzyHomk3hT1iRew5SxmsVKRFWNxuqmU=","Source":"Telemetry.Server","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}

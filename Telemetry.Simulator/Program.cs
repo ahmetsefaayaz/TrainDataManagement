@@ -14,7 +14,7 @@ class Program
         {
             try
             {
-                routes = await client.GetFromJsonAsync<List<RouteDto>>("http://localhost:5215/api/routes");
+                routes = await client.GetFromJsonAsync<List<RouteDto>>("http://telemetry-server:8080/api/routes");
             }
             catch (Exception ex)
             {
@@ -39,7 +39,7 @@ class Program
 
     static async Task StartLocomotiveAsync(short locomotiveId, RouteDto route)
     {
-        string serverIp = "127.0.0.1";
+        string serverIp = Environment.GetEnvironmentVariable("SERVER_HOST") ?? "telemetry-server";
         int port = 5000;
         
         

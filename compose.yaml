@@ -1,13 +1,35 @@
 ﻿version: '3.8'
 
 services:
+  telemetry-db:
+    image: postgres:latest
+    container_name: telemetry_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=TelemetryDB
+    ports:
+      - "5434:5432"
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   telemetry-server:
     build:
       context: .
       dockerfile: Telemetry.Server/Dockerfile
     container_name: telemetry_api
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=telemetry-db;Port=5432;Database=TelemetryDB;Username=postgres;Password=postgres;
+      - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "5215:8080"
+    depends_on:
+      telemetry-db:
+        condition: service_healthy
     restart: always
   
   telemetry-ui:
@@ -18,13 +40,16 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - telemetry-server 
+      - telemetry-server
   
   telemetry-simulator:
     build:
       context: .
       dockerfile: Telemetry.Simulator/Dockerfile
     container_name: telemetry_engine
+    environment:
+      - SERVER_HOST=telemetry-server
+      - SERVER_PORT=8080
     depends_on:
       - telemetry-server
     restart: unless-stopped
