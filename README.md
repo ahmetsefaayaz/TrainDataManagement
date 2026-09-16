@@ -30,7 +30,7 @@ Follow these steps to run the simulation locally:
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/ahmetsefaayaz/TrainDataManagement.git](https://github.com/ahmetsefaayaz/TrainDataManagement.git)
+   git clone https://github.com/ahmetsefaayaz/TrainDataManagement.git
    ```
 
 2. Start the database environment using Docker:
